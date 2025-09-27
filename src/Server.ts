@@ -3,7 +3,7 @@ import githubRouter from "./routing/GithubRouter";
 
 const app = new Hono();
 
-app.route("/webhook/github", githubRouter);
+app.route("/webhook", githubRouter);
 
 export default {
   fetch: app.fetch,
