@@ -2,24 +2,17 @@ import { Hono } from "hono";
 import { exchangeCodeForToken } from "../services/TokenServices";
 import { generateState } from "../helpers/Auth";
 import { InMemoryStore } from "../stores/InMemoryStore";
+import { RedisStore } from "../stores/RedisStore";
 
 export const ClickupRouter = new Hono();
+const stateStore = new RedisStore<{ state: string }>(
+  300 // 5 min
+);
 
-interface WorkspaceState {
-  state: string;
-  createdAt: number;
-}
-
-interface IClickupAuthResponse {
-  access_token: string;
-  token_type: string;
-}
-
-const stateStore = new InMemoryStore<WorkspaceState>();
-export const tokenStore = new InMemoryStore<IClickupAuthResponse>();
-
+const tokenStore = new RedisStore<{ accessToken: string }>(
+  0 // No expiration
+);
 ClickupRouter.get("/auth", async (c) => {
-  console.log("Clickup auth endpoint hit");
   const code = c.req.query("code");
 
   if (!code) {
@@ -40,11 +33,8 @@ ClickupRouter.get("/auth", async (c) => {
 
   try {
     const token = await exchangeCodeForToken(code);
-    const authResponse: IClickupAuthResponse = {
-      access_token: token,
-      token_type: "Bearer",
-    };
-    tokenStore.set("token", authResponse);
+    await tokenStore.set("clickup_token", { accessToken: token });
+    return c.json({ message: "Clickup connected successfully!" });
   } catch (error) {
     console.error("Error during Clickup OAuth process:", error);
     return c.json({ message: "Internal server error" }, 500);
@@ -63,7 +53,7 @@ ClickupRouter.get("/connect", (c) => {
   if (!clientId) {
     return c.json({ message: "Client ID not configured" }, 500);
   }
-  stateStore.set(state, { state, createdAt: Date.now() });
+  stateStore.set(state, { state });
   const authUrl = `https://app.clickup.com/api?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}`;
   return c.redirect(authUrl);
 });

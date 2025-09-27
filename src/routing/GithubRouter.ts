@@ -7,9 +7,12 @@ import {
 import { TaskResponseDto } from "../dtos/TaskResponseDto";
 import { RepositoryResponseDto } from "../dtos/RepositoryResponseDto";
 import { create } from "../services/TaskServices";
-import { tokenStore } from "./ClickupRouter";
+import { RedisStore } from "../stores/RedisStore";
+import { config } from "../Server";
 
 const githubRouter = new Hono();
+
+const tokenStore = new RedisStore<{ accessToken: string }>();
 
 githubRouter.post("/issues", async (c) => {
   c.status(202);
@@ -74,17 +77,37 @@ githubRouter.post("/issues", async (c) => {
 
   console.log("Processed Repository Info:", repositoryInfo);
 
-  const token = tokenStore.get("token");
+  const repoSearch = repositoryInfo.full_name;
+
+  const repoConfig = config.repos[repoSearch];
+
+  if (!repoConfig) {
+    console.error("Repository not configured for ClickUp integration");
+    return c.json({ message: "Repository not configured" }, 400);
+  }
+
+  const listId = repoConfig.list_id;
+  if (!listId) {
+    console.error("ClickUp List ID not configured for this repository");
+    return c.json(
+      { message: "ClickUp List ID not configured for this repository" },
+      500
+    );
+  }
+
+  console.log(
+    `Mapping found for repository ${repositoryInfo.full_name}: ${repoSearch} -> List ID: ${listId}`
+  );
+
+  // Retrieve the ClickUp token from the store
+  const token = await tokenStore.get("clickup_token");
+
   if (!token) {
     console.error("No ClickUp token available");
     return c.json({ message: "No ClickUp token available" }, 500);
   }
 
-  const taskInfoResult = await create(
-    Bun.env.CLICKUP_LIST_ID as string,
-    taskInfo,
-    token.access_token
-  );
+  const taskInfoResult = await create(listId, taskInfo, token.accessToken);
 
   if (!taskInfoResult.ok) {
     console.error(

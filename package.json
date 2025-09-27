@@ -9,6 +9,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "hono": "^4.9.9"
+    "hono": "^4.9.9",
+    "ioredis": "^5.8.0"
   }
 }
