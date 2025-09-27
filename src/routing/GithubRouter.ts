@@ -6,7 +6,7 @@ import { RepositoryResponseDto } from "../dtos/RepositoryResponseDto";
 
 const githubRouter = new Hono();
 
-githubRouter.post("/", async (c) => {
+githubRouter.post("/issues", async (c) => {
   c.status(202);
   const sigHeader = c.req.header("x-hub-signature-256");
   const rawBody = await c.req.text();
