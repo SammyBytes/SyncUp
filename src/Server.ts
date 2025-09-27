@@ -1,7 +1,9 @@
 import { Hono } from "hono";
+import githubRouter from "./routing/GithubRouter";
 
 const app = new Hono();
-app.get("/", (c) => c.text("Hello Bun!"));
+
+app.route("/webhook/github", githubRouter);
 
 export default {
   fetch: app.fetch,
