@@ -4,6 +4,7 @@ import { generateState } from "../helpers/Auth";
 import { InMemoryStore } from "../stores/InMemoryStore";
 import { RedisStore } from "../stores/RedisStore";
 import { GenerateAuthUrlUseCase } from "../useCases/clickup/GenerateAuthUrlUseCase";
+import { ConnectClickUpAccountUseCase } from "../useCases/clickup/ConnectClickUpAccountUseCase";
 
 export const ClickupRouter = new Hono();
 const stateStore = new RedisStore<{ state: string }>(
@@ -15,33 +16,14 @@ const tokenStore = new RedisStore<{ accessToken: string }>(
 );
 ClickupRouter.get("/auth", async (c) => {
   const code = c.req.query("code");
-
-  if (!code) {
-    return c.json({ message: "Missing code parameter" }, 400);
-  }
-
   const state = c.req.query("state");
-  if (!state) {
-    return c.json({ message: "Missing state parameter" }, 400);
-  }
 
-  const storedState = stateStore.get(state);
-  if (!storedState) {
-    return c.json({ message: "Invalid or expired state parameter" }, 400);
-  }
-  // Once used, remove the state to prevent reuse
-  stateStore.delete(state);
+  const result = await ConnectClickUpAccountUseCase.execute(code, state);
 
-  try {
-    const token = await exchangeCodeForToken(code);
-    await tokenStore.set("clickup_token", { accessToken: token });
-    return c.json({ message: "Clickup connected successfully!" });
-  } catch (error) {
-    console.error("Error during Clickup OAuth process:", error);
-    return c.json({ message: "Internal server error" }, 500);
+  if (result.ok === false) {
+    return c.json(result.error, result.error.status);
   }
-
-  return c.json({ message: "Clickup Router works!" });
+  return c.json(result.value);
 });
 
 ClickupRouter.get("/connect", (c) => {
