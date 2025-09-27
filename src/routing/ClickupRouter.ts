@@ -10,7 +10,13 @@ interface WorkspaceState {
   createdAt: number;
 }
 
+interface IClickupAuthResponse {
+  access_token: string;
+  token_type: string;
+}
+
 const stateStore = new InMemoryStore<WorkspaceState>();
+export const tokenStore = new InMemoryStore<IClickupAuthResponse>();
 
 ClickupRouter.get("/auth", async (c) => {
   console.log("Clickup auth endpoint hit");
@@ -34,6 +40,11 @@ ClickupRouter.get("/auth", async (c) => {
 
   try {
     const token = await exchangeCodeForToken(code);
+    const authResponse: IClickupAuthResponse = {
+      access_token: token,
+      token_type: "Bearer",
+    };
+    tokenStore.set("token", authResponse);
   } catch (error) {
     console.error("Error during Clickup OAuth process:", error);
     return c.json({ message: "Internal server error" }, 500);
