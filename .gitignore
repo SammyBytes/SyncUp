@@ -33,3 +33,4 @@ config/workspace-config.json
 
 # Finder (MacOS) folder config
 .DS_Store
+src/config/workspace-config.json
