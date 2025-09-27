@@ -7,13 +7,7 @@ import { GenerateAuthUrlUseCase } from "../useCases/clickup/GenerateAuthUrlUseCa
 import { ConnectClickUpAccountUseCase } from "../useCases/clickup/ConnectClickUpAccountUseCase";
 
 export const ClickupRouter = new Hono();
-const stateStore = new RedisStore<{ state: string }>(
-  300 // 5 min
-);
 
-const tokenStore = new RedisStore<{ accessToken: string }>(
-  0 // No expiration
-);
 ClickupRouter.get("/auth", async (c) => {
   const code = c.req.query("code");
   const state = c.req.query("state");
