@@ -1,4 +1,8 @@
-import { createHmac as cryptoCreateHmac, timingSafeEqual } from "crypto";
+import {
+  createHmac as cryptoCreateHmac,
+  randomBytes,
+  timingSafeEqual,
+} from "crypto";
 /**
  * Verifies the signature of a request.
  * @param secret - The secret used to create the HMAC.
@@ -23,6 +27,14 @@ export const verifySignature = (
   } catch {
     return false;
   }
+};
+
+/** Generates a random state string.
+ * @param length - The length of the state string.
+ * @returns A random state string.
+ */
+export const generateState = (length: number = 16): string => {
+  return randomBytes(length).toString("hex");
 };
 /**
  * Creates an HMAC.
