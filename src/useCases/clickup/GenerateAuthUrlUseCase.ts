@@ -1,6 +1,10 @@
+import e from "cors";
 import { env } from "../../config/Env";
+import { logger } from "../../config/Logger";
 import { generateState } from "../../helpers/Auth";
 import { RedisStore } from "../../stores/RedisStore";
+import { Err, Ok, type Result } from "../../helpers/Result";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 /**
  * ClickUp OAuth Client ID from environment variables.
@@ -21,17 +25,36 @@ const stateStore = new RedisStore<{ state: string }>(
   120 // 2 min
 );
 
+type ConnectResponseResult = Result<
+  string,
+  { message: string; status: ContentfulStatusCode }
+>;
+
 /**
  * Generates the ClickUp OAuth authorization URL with a unique state parameter.
  * @returns The ClickUp OAuth authorization URL with state parameter.
  */
-export const execute = (): string => {
+const execute = (): ConnectResponseResult => {
   try {
     const state = generateState();
     stateStore.set(state, { state });
-    return `https://app.clickup.com/api/v1/oauth/authorize?client_id=${clickupClientId}&redirect_uri=${redirectUri}&state=${state}`;
-  } catch (error) {
-    console.error("Error generating auth URL:", error);
-    throw new Error("Failed to generate ClickUp auth URL");
+    return Ok(
+      `https://app.clickup.com/api/v1/oauth/authorize?client_id=${clickupClientId}&redirect_uri=${redirectUri}&state=${state}`
+    );
+  } catch (error: any) {
+    if (error instanceof Error) {
+      logger.error("Error generating ClickUp auth URL: " + error.message);
+      return Err({
+        message: "Failed to generate ClickUp auth URL",
+        status: 500,
+      });
+    }
+
+    logger.error("Unknown error generating ClickUp auth URL");
+    return Err({ message: "Failed to generate ClickUp auth URL", status: 500 });
   }
+};
+
+export const GenerateAuthUrlUseCase = {
+  execute,
 };

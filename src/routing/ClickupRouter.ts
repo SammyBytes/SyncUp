@@ -3,6 +3,7 @@ import { exchangeCodeForToken } from "../services/TokenServices";
 import { generateState } from "../helpers/Auth";
 import { InMemoryStore } from "../stores/InMemoryStore";
 import { RedisStore } from "../stores/RedisStore";
+import { GenerateAuthUrlUseCase } from "../useCases/clickup/GenerateAuthUrlUseCase";
 
 export const ClickupRouter = new Hono();
 const stateStore = new RedisStore<{ state: string }>(
@@ -44,16 +45,14 @@ ClickupRouter.get("/auth", async (c) => {
 });
 
 ClickupRouter.get("/connect", (c) => {
-  const state = generateState();
-  const clientId = Bun.env.CLICKUP_ID_CLIENT;
-  const redirectUri = encodeURIComponent(
-    "http://localhost:1234/api/v1/clickup/auth"
-  );
-
-  if (!clientId) {
-    return c.json({ message: "Client ID not configured" }, 500);
+  try {
+    const result = GenerateAuthUrlUseCase.execute();
+    if (result.ok === false) {
+      return c.json(result.error, result.error.status);
+    }
+    return c.redirect(result.value);
+  } catch (error) {
+    console.error("Error generating Clickup auth URL:", error);
+    return c.json({ message: "Internal server error" }, 500);
   }
-  stateStore.set(state, { state });
-  const authUrl = `https://app.clickup.com/api?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}`;
-  return c.redirect(authUrl);
 });
