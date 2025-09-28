@@ -2,7 +2,10 @@
 
 SyncUp is a **prototype microservice** that synchronizes **new GitHub issues** with **ClickUp task lists**.
 
+
 This service acts as a **backend intermediary**: it receives GitHub webhooks, verifies their authenticity, and automatically creates tasks in ClickUp based on repository configuration.
+
+> ⚠️ **Important:** This is **not an official service** of ClickUp or GitHub. It is a **development prototype** intended for local testing only.
 
 > Currently, it only handles `opened` issue events from GitHub and is intended for **local development**. Automatic installation and production deployment are planned for future versions.
 
@@ -60,14 +63,28 @@ CLICKUP_CLIENT_SECRET=your_client_secret
 * **ioredis**: Redis client for storing tokens and temporary states.
 * **node-fetch / fetch**: To call the ClickUp API.
 * **crypto**: Validate GitHub HMAC signatures and generate OAuth `state`.
-
+* **pino**: Logging library.
+* **zod**: Data validation and parsing.
+* **hono-rate-limiter**: Middleware for rate limiting using Redis.
 ---
 
 ## 🔹 Running in Development
 
+### Scripts
+
+```json
+"scripts": {
+  "dev": "bun run --watch src/Server.ts",
+  "build": "bun build src/Server.ts --outdir dist --target bun",
+  "start": "bun run dist/Server.js"
+}
+```
+
+### Start the Service
+
 ```bash
 bun install
-bun run src/Server.ts
+bun run dev
 ```
 
 * Server runs at `http://localhost:1234`.
@@ -113,3 +130,4 @@ smee --url https://smee.io/SSJ71U915lnucEk9 --path /api/v1/webhook/issues --port
   2. Select **Copy link**.
   3. In the copied URL, locate the number that follows `/list/`. This number is the `list_id` to use in `workspace-config.json`.
 * **Security**: Ensure `GITHUB_WEBHOOK_SECRET` is set to validate incoming webhooks.
+* **Rate Limiting**: The service includes rate limiting to prevent abuse, allowing a maximum of 10 requests per minute per IP address.
