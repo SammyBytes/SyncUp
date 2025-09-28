@@ -3,6 +3,7 @@ import { RedisStore } from "../../stores/RedisStore";
 import { Err, Ok, type Result } from "../../helpers/Result";
 import { exchangeCodeForToken } from "../../services/TokenServices";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { ConnectClickUpSchema } from "../../validations/clickup/ConnectClickUpSchema";
 
 /**
  * Store for ClickUp access tokens with no expiration.
@@ -29,28 +30,29 @@ const execute = async (
   code: string | undefined,
   state: string | undefined
 ): Promise<ConnectResult> => {
-  if (!code)
-    return {
-      ok: false,
-      error: { message: "Missing code parameter", status: 400 },
-    };
-  if (!state)
-    return {
-      ok: false,
-      error: { message: "Missing state parameter", status: 400 },
-    };
+  const parsed = await ConnectClickUpSchema.safeParseAsync({ code, state });
 
-  const storedState = stateStore.get(state);
+  if (parsed.success === false) {
+    const firstError = parsed.error.issues[0];
+    return {
+      ok: false,
+      error: { message: firstError?.message as string, status: 400 },
+    };
+  }
+
+  const { code: validCode, state: validState } = parsed.data;
+
+  const storedState = stateStore.get(validState);
   if (!storedState)
     return {
       ok: false,
       error: { message: "Invalid or expired state parameter", status: 400 },
     };
 
-  stateStore.delete(state); // prevent reuse
+  stateStore.delete(validState); // prevent reuse
 
   try {
-    const token = await exchangeCodeForToken(code);
+    const token = await exchangeCodeForToken(validCode);
     await tokenStore.set(clickupTokenName, { accessToken: token });
     return {
       ok: true,
