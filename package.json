@@ -2,6 +2,15 @@
   "name": "syncup",
   "module": "src/index.ts",
   "type": "module",
+  "version": "0.0.1",
+  "description": "SyncUp is a service that creates ClickUp tasks from GitHub issues.",
+  "author": "Sammy",
+  "license": "MIT",
+  "scripts": {
+    "dev": "bun run --watch src/Server.ts",
+    "build": "bun build src/Server.ts --outdir dist --target bun",
+    "start": "bun run dist/Server.js"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "pino-pretty": "^13.1.1"
