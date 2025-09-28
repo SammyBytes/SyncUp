@@ -3,57 +3,35 @@ import { exchangeCodeForToken } from "../services/TokenServices";
 import { generateState } from "../helpers/Auth";
 import { InMemoryStore } from "../stores/InMemoryStore";
 import { RedisStore } from "../stores/RedisStore";
+import { GenerateAuthUrlUseCase } from "../useCases/clickup/GenerateAuthUrlUseCase";
+import { ConnectClickUpAccountUseCase } from "../useCases/clickup/ConnectClickUpAccountUseCase";
+import { logger } from "../config/Logger";
 
 export const ClickupRouter = new Hono();
-const stateStore = new RedisStore<{ state: string }>(
-  300 // 5 min
-);
 
-const tokenStore = new RedisStore<{ accessToken: string }>(
-  0 // No expiration
-);
 ClickupRouter.get("/auth", async (c) => {
   const code = c.req.query("code");
-
-  if (!code) {
-    return c.json({ message: "Missing code parameter" }, 400);
-  }
-
   const state = c.req.query("state");
-  if (!state) {
-    return c.json({ message: "Missing state parameter" }, 400);
-  }
 
-  const storedState = stateStore.get(state);
-  if (!storedState) {
-    return c.json({ message: "Invalid or expired state parameter" }, 400);
-  }
-  // Once used, remove the state to prevent reuse
-  stateStore.delete(state);
+  const result = await ConnectClickUpAccountUseCase.execute(code, state);
 
-  try {
-    const token = await exchangeCodeForToken(code);
-    await tokenStore.set("clickup_token", { accessToken: token });
-    return c.json({ message: "Clickup connected successfully!" });
-  } catch (error) {
-    console.error("Error during Clickup OAuth process:", error);
-    return c.json({ message: "Internal server error" }, 500);
+  if (result.ok === false) {
+    return c.json(result.error, result.error.status);
   }
-
-  return c.json({ message: "Clickup Router works!" });
+  return c.json(result.value);
 });
 
 ClickupRouter.get("/connect", (c) => {
-  const state = generateState();
-  const clientId = Bun.env.CLICKUP_ID_CLIENT;
-  const redirectUri = encodeURIComponent(
-    "http://localhost:1234/api/v1/clickup/auth"
-  );
-
-  if (!clientId) {
-    return c.json({ message: "Client ID not configured" }, 500);
+  try {
+    const result = GenerateAuthUrlUseCase.execute();
+    if (result.ok === false) {
+      return c.json(result.error, result.error.status);
+    }
+    const url = result.value;
+    logger.info(`Generated Clickup auth URL: ${url}`);
+    return c.redirect(url);
+  } catch (error) {
+    logger.error(`Error generating Clickup auth URL: ${error}`);
+    return c.json({ message: "Internal server error" }, 500);
   }
-  stateStore.set(state, { state });
-  const authUrl = `https://app.clickup.com/api?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}`;
-  return c.redirect(authUrl);
 });

@@ -1,15 +1,12 @@
 export class TaskResponseDto {
   id!: number;
   title!: string;
-  body!: string;
+  body: string | null = null;
   draft!: boolean;
   url!: string;
   state!: string;
-  
 
-  private constructor() {
-    Object.seal(this);
-  }
+  private constructor() {}
 
   static create(data: Partial<TaskResponseDto>): TaskResponseDto {
     const instance = new TaskResponseDto();
