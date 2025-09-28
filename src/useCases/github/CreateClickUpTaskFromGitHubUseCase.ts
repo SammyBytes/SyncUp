@@ -1,10 +1,10 @@
 import { env } from "../../config/Env";
+import { config } from "../../config/Index";
 import { logger } from "../../config/Logger";
 import { RepositoryResponseDto } from "../../dtos/RepositoryResponseDto";
 import { TaskResponseDto } from "../../dtos/TaskResponseDto";
 import { verifySignature } from "../../helpers/Auth";
 import { Err, Ok, type Result } from "../../helpers/Result";
-import { config } from "../../Server";
 import { create } from "../../services/TaskServices";
 import { RedisStore } from "../../stores/RedisStore";
 import {
@@ -80,7 +80,7 @@ const execute = async (
     const taskInfo = TaskResponseDto.create(data.issue);
     const repositoryInfo = RepositoryResponseDto.create(data.repository);
 
-    const repoConfig = config.repos[repositoryInfo.full_name];
+    const repoConfig = config.workspace.repos[repositoryInfo.full_name];
     if (!repoConfig) {
       logger.warn(`Repository not configured: ${repositoryInfo.full_name}`);
       return Err({ message: "Repository not configured", status: 400 });
