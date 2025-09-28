@@ -6,8 +6,10 @@ import { RedisStore } from "../stores/RedisStore";
 import { GenerateAuthUrlUseCase } from "../useCases/clickup/GenerateAuthUrlUseCase";
 import { ConnectClickUpAccountUseCase } from "../useCases/clickup/ConnectClickUpAccountUseCase";
 import { logger } from "../config/Logger";
+import { limiter } from "../helpers/RateLimit";
 
 export const ClickupRouter = new Hono();
+ClickupRouter.use(limiter);
 
 ClickupRouter.get("/auth", async (c) => {
   const code = c.req.query("code");

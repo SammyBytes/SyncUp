@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "hono": "^4.9.9",
+    "hono-rate-limiter": "^0.4.2",
     "ioredis": "^5.8.0",
     "pino": "^9.11.0",
     "zod": "^4.1.11"
