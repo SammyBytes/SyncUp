@@ -5,6 +5,7 @@ import { InMemoryStore } from "../stores/InMemoryStore";
 import { RedisStore } from "../stores/RedisStore";
 import { GenerateAuthUrlUseCase } from "../useCases/clickup/GenerateAuthUrlUseCase";
 import { ConnectClickUpAccountUseCase } from "../useCases/clickup/ConnectClickUpAccountUseCase";
+import { logger } from "../config/Logger";
 
 export const ClickupRouter = new Hono();
 
@@ -26,9 +27,11 @@ ClickupRouter.get("/connect", (c) => {
     if (result.ok === false) {
       return c.json(result.error, result.error.status);
     }
-    return c.redirect(result.value);
+    const url = result.value;
+    logger.info(`Generated Clickup auth URL: ${url}`);
+    return c.redirect(url);
   } catch (error) {
-    console.error("Error generating Clickup auth URL:", error);
+    logger.error(`yError generating Clickup auth URL: ${error}`);
     return c.json({ message: "Internal server error" }, 500);
   }
 });

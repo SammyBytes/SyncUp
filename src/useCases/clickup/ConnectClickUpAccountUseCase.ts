@@ -8,7 +8,7 @@ import { ConnectClickUpSchema } from "../../validations/clickup/ConnectClickUpSc
 /**
  * Store for ClickUp access tokens with no expiration.
  */
-const tokenStore = new RedisStore<{ accessToken: string }>(3600 * 24 * 30); // 30 Days
+const tokenStore = new RedisStore<{ accessToken: string }>(); // no expiration
 /**
  * Store to keep track of generated states for OAuth flow.
  */

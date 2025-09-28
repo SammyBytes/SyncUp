@@ -4,13 +4,20 @@ import { z } from "zod";
  * All variables are required except PORT which defaults to 1234.
  */
 const envSchema = z.object({
-  PORT: z.number().default(1234),
+  PORT: z
+    .string()
+    .default("1234")
+    .transform((val) => parseInt(val, 10)),
   HOST: z.string().min(1).default("http://localhost"),
   CLICKUP_ID_CLIENT: z.string().min(1),
   CLICKUP_CLIENT_SECRET: z.string().min(1),
 
   REDIS_HOST: z.string().min(1),
-  REDIS_PORT: z.number().min(1).default(6379),
+  REDIS_PORT: z
+    .string()
+    .min(1)
+    .default("6379")
+    .transform((val) => parseInt(val, 10)),
   REDIS_USERNAME: z.string().min(1).default("default"),
   REDIS_PASSWORD: z.string().min(1).default("12345"),
 

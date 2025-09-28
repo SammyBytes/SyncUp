@@ -10,12 +10,6 @@ import type { ContentfulStatusCode } from "hono/utils/http-status";
  * ClickUp OAuth Client ID from environment variables.
  */
 const clickupClientId = env.CLICKUP_ID_CLIENT;
-/**
- * Redirect URI for ClickUp OAuth, constructed from environment variables.
- */
-const redirectUri = encodeURIComponent(
-  `${env.HOST}:${env.PORT}/api/v1/clickup/auth`
-);
 
 /**
  * Store to keep track of generated states for OAuth flow.
@@ -38,9 +32,13 @@ const execute = (): ConnectResponseResult => {
   try {
     const state = generateState();
     stateStore.set(state, { state });
-    return Ok(
-      `https://app.clickup.com/api/v1/oauth/authorize?client_id=${clickupClientId}&redirect_uri=${redirectUri}&state=${state}`
+
+    const redirectUri = encodeURIComponent(
+      `${env.HOST}:${env.PORT}/api/v1/clickup/auth`
     );
+    const url = `https://app.clickup.com/api?client_id=${clickupClientId}&redirect_uri=${redirectUri}&state=${state}`;
+
+    return Ok(url);
   } catch (error: any) {
     if (error instanceof Error) {
       logger.error("Error generating ClickUp auth URL: " + error.message);
