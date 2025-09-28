@@ -9,7 +9,7 @@ const configSchema = z.object({
   ),
 });
 
-const rawConfig = Bun.file("./src/config/workspace-config.json").json();
+const rawConfig = await Bun.file("./src/config/workspace-config.json").json();
 
 export const config = configSchema.safeParse(rawConfig);
 

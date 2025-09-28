@@ -1,4 +1,3 @@
-import e from "cors";
 import { env } from "../../config/Env";
 import { logger } from "../../config/Logger";
 import { generateState } from "../../helpers/Auth";

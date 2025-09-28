@@ -27,7 +27,7 @@ const envSchema = z.object({
  * Parsed and validated environment variables.
  * Application will exit if validation fails.
  */
-const _env = await envSchema.safeParseAsync(Bun.env);
+const _env = envSchema.safeParse(Bun.env);
 
 // Exit the process if environment variables are invalid
 if (!_env.success) {

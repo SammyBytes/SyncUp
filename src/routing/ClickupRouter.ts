@@ -31,7 +31,7 @@ ClickupRouter.get("/connect", (c) => {
     logger.info(`Generated Clickup auth URL: ${url}`);
     return c.redirect(url);
   } catch (error) {
-    logger.error(`yError generating Clickup auth URL: ${error}`);
+    logger.error(`Error generating Clickup auth URL: ${error}`);
     return c.json({ message: "Internal server error" }, 500);
   }
 });
