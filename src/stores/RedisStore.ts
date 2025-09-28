@@ -1,14 +1,15 @@
 import Redis from "ioredis";
+import { env } from "../config/Env";
 export class RedisStore<T> {
   private redis: Redis;
   private ttl: number;
 
-  constructor(ttl: number = 300) {
+  constructor(ttl: number = 0) {
     this.redis = new Redis({
-      host: Bun.env.REDIS_HOST!,
-      port: Number(Bun.env.REDIS_PORT),
-      username: Bun.env.REDIS_USERNAME,
-      password: Bun.env.REDIS_PASSWORD,
+      host: env.REDIS_HOST!,
+      port: Number(env.REDIS_PORT),
+      username: env.REDIS_USERNAME,
+      password: env.REDIS_PASSWORD,
     });
     this.ttl = ttl;
   }

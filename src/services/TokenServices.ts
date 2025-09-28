@@ -1,3 +1,5 @@
+import { env } from "../config/Env";
+
 /**
  * Handles the exchange of an authorization code for an access token with ClickUp's OAuth2 service.
  * @param code - The authorization code received from ClickUp after user authorization.
@@ -25,8 +27,8 @@ export const exchangeCodeForToken = async (code: string): Promise<string> => {
 
 const buildParams = (code: string): URLSearchParams => {
   const params = new URLSearchParams();
-  params.append("client_id", Bun.env.CLICKUP_ID_CLIENT as string);
-  params.append("client_secret", Bun.env.CLICKUP_CLIENT_SECRET as string);
+  params.append("client_id", env.CLICKUP_ID_CLIENT);
+  params.append("client_secret", env.CLICKUP_CLIENT_SECRET);
   params.append("code", code);
   return params;
 };

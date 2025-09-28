@@ -3,9 +3,7 @@ export class RepositoryResponseDto {
   name!: string;
   full_name!: string;
   html_url!: string;
-  private constructor() {
-    Object.seal(this);
-  }
+  private constructor() {}
 
   static create(data: Partial<RepositoryResponseDto>): RepositoryResponseDto {
     const instance = new RepositoryResponseDto();

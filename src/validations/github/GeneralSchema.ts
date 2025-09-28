@@ -13,9 +13,9 @@ export const PayloadSchema = z.object({
     .object({
       id: z.number().optional(),
       title: z.string().optional(),
-      body: z.string().optional(),
+      body: z.string().nullable().optional(),
       draft: z.boolean().optional(),
-      html_url: z.string().url().optional(),
+      html_url: z.url().optional(),
       state: z.string().optional(),
     })
     .optional(),
@@ -24,7 +24,7 @@ export const PayloadSchema = z.object({
       id: z.number().optional(),
       name: z.string().optional(),
       full_name: z.string().optional(),
-      html_url: z.string().url().optional(),
+      html_url: z.url().optional(),
     })
     .optional(),
 });
